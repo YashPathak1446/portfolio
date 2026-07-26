@@ -1,9 +1,9 @@
 ---
 title: "JobScout"
-tagline: "A multi-agent pipeline that turns hundreds of raw job postings into tailored resumes in about two minutes."
-stack: ["Python", "Google ADK", "Gemini", "React", "FastAPI"]
+tagline: "A four-agent pipeline that discovers job postings, scores them against a master resume, and generates a tailored resume for each one."
+stack: ["Python", "Google ADK", "Gemini", "LaTeX"]
 repo: "https://github.com/YashPathak1446/jobscout"
-demo: "" # TODO: add once the web app is deployed
+demo: ""
 date: "2026-01"
 status: "Active"
 featured: true
@@ -14,75 +14,73 @@ coverAlt: ""
 
 ## The problem
 
-Tailoring a resume to a specific job posting works. It is also the single most tedious part of a job search: read the description, figure out which of your experiences actually map to it, rewrite the bullets to use the posting's vocabulary, check that everything still fits on one page, repeat. Doing it honestly takes twenty minutes a posting. Nobody does it for a hundred postings.
+Tailoring a resume to a specific posting works. It's also the most tedious part of a job search: read the description, work out which of your experiences actually map to it, rewrite the bullets in the posting's vocabulary, check everything still fits one page, repeat. Done honestly it takes twenty minutes a posting, so nobody does it a hundred times.
 
-I wanted to find out whether the whole loop could be automated without producing the kind of generic LLM output that a recruiter can spot in three seconds — and without the pipeline falling over the moment an external API had a bad day.
+I wanted to know whether the whole loop could be automated without producing the generic LLM output a recruiter spots in three seconds — and without the pipeline collapsing the moment an external API had a bad day.
 
-**Result:** JobScout ingests hundreds of raw postings and produces tailored resumes in roughly two minutes on a cold run, and about 38 seconds on a warm one. It has run to completion through a mid-run Gemini outage.
-
-> **TODO — screenshot goes here.** A terminal recording of a full run, or a before/after of one resume against one job description. This is the highest-value visual on the page; put it directly under this line.
+> **TODO — screenshot.** A terminal recording of a full run, or a before/after of one resume against one posting. Highest-value visual on the page; put it directly here.
 
 ## How it works
 
-The pipeline is four specialized agents built on Google's Agent Development Kit, coordinated by a stateful orchestrator:
+Four agents on Google's Agent Development Kit, coordinated by a stateful orchestrator:
 
 | Agent | Responsibility |
 |---|---|
-| **Discovery** | Pulls raw job postings from source feeds |
-| **Enrichment** | Normalizes and structures each job description |
-| **Semantic analysis** | Scores how well each of my experiences and projects fits the posting |
-| **Generation** | Writes the tailored resume from the selected components |
+| **Discovery** | Pulls postings from Serper, Adzuna, and GitHub job boards |
+| **Enrichment** | Scrapes the full description from each apply URL |
+| **Analysis** | Embeds the JD and scores it against every resume component |
+| **Generation** | Writes a tailored LaTeX resume from the selected components |
 
-The orchestrator holds run state across all four, which is what makes caching and deduplication possible between stages rather than just inside them.
+The orchestrator holds run state across all four, which is what makes caching and cross-stage deduplication possible rather than each agent caching in isolation.
 
-> **TODO — architecture diagram.** Boxes for the four agents plus the orchestrator, with the cache and dedup store hanging off the side. Excalidraw is fine; it doesn't need to be pretty.
+> **TODO — architecture diagram.** Four agents plus the orchestrator, with the two caches hanging off the side.
 
 ## Decisions worth explaining
 
-### Four agents instead of one large prompt
+### A mock layer for every external dependency
 
-[**Your reasoning here** — this is the first question an interviewer will ask, and the honest answer is more interesting than a textbook one. Was it that each stage needed different context and a single prompt kept losing the thread? That failures were impossible to localize? That you wanted to swap the discovery source without touching generation? Two or three sentences.]
+`mock_search.py`, `mock_scraper.py`, and a mock embedding function, behind three orchestrator flags: `--mock` for the whole pipeline, `--mock-generation`, and `--mock-embeddings` for one stage at a time.
 
-The practical payoff was that when generation started producing bad output, I could tell whether the problem was the generator or the matcher feeding it. In a monolithic prompt, that distinction disappears.
+This is the decision I'd defend hardest. Every stage of this pipeline calls something that costs money, rate-limits, or is slow — search APIs, page scrapes, Gemini embeddings, Gemini generation. Without a mock path, every change to the LaTeX writer means burning quota on API calls that have nothing to do with what I'm testing, and a debugging session can exhaust a daily limit before lunch.
 
-### Hybrid matching, not pure embeddings
+Being able to exercise the full pipeline offline meant the orchestration logic could be developed and debugged independently of the model calls. The per-stage flags matter more than the global one: mocking embeddings while generation stays real is exactly what you want when the thing you're debugging is prompt output.
 
-The semantic analysis layer scores fit using Gemini embeddings with cosine similarity, but combines that with keyword overlap and rule-based selection logic rather than relying on embeddings alone.
+### Caching keyed on what actually changes
 
-Pure semantic similarity is good at recognizing that "built a batch ingestion pipeline" is relevant to a data engineering posting. It is bad at the thing job applications actually run on: exact keyword matching against an ATS filter. A posting that says *Terraform* wants the literal string *Terraform*, and a nearby-in-embedding-space paraphrase is worth nothing. Combining the two gets both the conceptual match and the literal one.
+Two caches with different invalidation strategies, because they're solving different problems.
 
-### Caching as an architectural decision, not an optimization
+The **embedding cache** is keyed on a hash of the resume file. My resume barely changes between runs, so re-embedding every component every time is pure waste — but the cache has to notice the moment I do edit it, and a file hash does that for free.
 
-An embedding cache plus a persistent job-deduplication layer cut warm runs from 137 seconds to 38 — about 3.6x.
+The **job cache** deduplicates postings by URL across runs, with a max-age so a listing that's been sitting in the cache for long enough gets treated as new again. Postings recur constantly across sources and across days; re-scraping and re-processing one I've already handled is the same waste at larger scale.
 
-The interesting part is what gets cached and why. My resume components barely change between runs, so re-embedding them every time is pure waste. Job postings recur constantly across sources and across days, so re-scraping and re-processing a posting I've already seen is the same waste at a larger scale. Both are cheap to key and safe to reuse. Deciding this up front, rather than bolting a cache on later, is what let the dedup store persist across runs instead of living inside one.
+[**Add the benchmark numbers here** — and commit the script. Right now `/bench_*.py` is in `.gitignore` under one-off artifacts, so the speedup is a number nobody who clones the repo can reproduce or even see.]
 
-### Assuming the model would produce invalid output
+### Assuming the model produces invalid output
 
-Generated resumes have hard constraints: bullets have to fit a length range, sections have to hold a bullet count, the whole thing has to fit a page. An LLM will violate these regularly, and no amount of prompt tightening gets the violation rate to zero.
+Generated resumes have hard constraints: bullets fit a length range, sections fit a bullet count, the whole thing fits a page. An LLM violates these regularly and no amount of prompt tightening drives the rate to zero.
 
-So the pipeline validates every generated resume against those constraints, and on a violation dispatches a targeted repair prompt naming the specific failure rather than regenerating from scratch. If repair also fails, the resume lands in a `needs_review` queue instead of being silently emitted or crashing the run.
+So every generated resume is validated, and on failure the pipeline dispatches a **narrow repair prompt naming the specific violation** rather than regenerating from scratch. One repair attempt. If that also fails, the resume is written to `outputs/<date>/needs_review/` instead of being silently emitted or crashing the run.
 
-That last part matters more than the repair loop itself. A partial result you can inspect is worth far more than a clean failure.
+The validator I'd point at first isn't the length check — it's `_validate_metric_preservation`, which extracts numeric claims from the master resume and confirms they survived into the tailored output intact. The failure mode it exists for is a model quietly rounding, dropping, or inventing a number while rewriting a bullet. On a resume that's not a formatting bug, it's a false claim about your own work, and it's the one error you cannot afford to ship.
 
-## The failure I designed for, and then got
+## The failure I planned for, and the one I didn't
 
-Mid-run, the Gemini API returned a 503.
+`retry_with_backoff` handles rate limiting: exponential backoff with jitter, and it parses the server's own suggested delay out of the error string (`"Please retry in 26.868412568s"`) and honors it when it's longer than the computed backoff. Quota exhaustion was the failure I expected on a pipeline making hundreds of model calls, so it's the one I built for.
 
-The pipeline finished. Degraded work routed to `needs_review`, completed work stayed completed, and the run produced usable output instead of a stack trace and an empty output directory.
+Then a run hit a Gemini 503.
 
-I want to be precise about why that happened, because it wasn't luck: I had built the fallback path before I needed it, on the assumption that any external API is unavailable some fraction of the time and that a batch job which discards an hour of work over one bad response is badly designed. Getting to watch that assumption pay off in production conditions was the most satisfying moment of the project.
+The retry path explicitly re-raises anything that isn't a rate-limit error, so a 503 isn't retried — it propagates. What caught it was the generic degradation path: the affected resumes routed to `needs_review`, completed work stayed completed, and the run produced usable output instead of a stack trace and an empty directory.
 
-[**Optional but strong** — if you have the log output from that run, put an excerpt here. Real evidence of a system degrading gracefully is rare in a portfolio.]
+I want to be accurate about that rather than claim more credit than I'm owed. I designed a specific recovery for one failure mode and got a different one, and what saved the run was the decision to make partial results a first-class outcome instead of treating any error as fatal. That's the more useful lesson: the retry logic only helps with failures you predicted, and the degradation path is what covers the ones you didn't.
+
+**The fix:** treat 503 and 500 as retryable alongside 429 — they're transient by definition. That's a two-line change to the `is_rate_limit` condition and a rename.
 
 ## What I'd do differently
 
-[**Your answer here.** Two or three items, and be specific — vague self-criticism reads as false modesty. Candidates worth considering: whether the rule-based selection logic should have been learned instead of hand-tuned; whether ADK was the right abstraction or whether it added indirection you didn't need; whether the cache keying strategy would survive a resume that changes frequently; how you'd evaluate output quality, since right now there's no metric for whether a tailored resume is actually *better*.]
+[**Two or three, specific.** Candidates: whether four agents earn their coordination overhead versus a single staged prompt; that scoring is embedding cosine similarity plus profile rules with no learned weighting, so the thresholds are hand-tuned; and the real gap — there's no measure of whether a tailored resume actually outperforms an untailored one, which is the premise the whole project rests on.]
 
-That last one is the honest gap. I can measure how fast the pipeline runs and whether output is well-formed. I don't yet have a way to measure whether a tailored resume outperforms an untailored one, and that's the question the whole project is premised on.
+That last one is the honest gap. I can measure how fast the pipeline runs and whether output is well-formed. I have no way to measure whether the tailoring works.
 
 ## What's next
 
-A React and FastAPI web application with browser-based local persistence, turning JobScout from a tool I run locally into something other job-seekers can use without installing anything. Resume data stays in the browser, which sidesteps both the privacy question and the cost of storing other people's documents.
-
-[Update this section the moment it ships — and move the deployed link to the top of the page.]
+A React and FastAPI web application with browser-based local persistence, turning JobScout from a tool I run locally into something other people can use without installing anything. Resume data stays in the browser, which sidesteps both the privacy question and the cost of storing other people's documents.
