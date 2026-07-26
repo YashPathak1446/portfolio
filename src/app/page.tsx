@@ -1,7 +1,9 @@
 import { getAllProjects, formatYear } from '@/lib/projects';
+import { getExperience, formatSpan } from '@/lib/experience';
 
 export default function Home() {
   const projects = getAllProjects();
+  const roles = getExperience();
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
 
@@ -64,6 +66,36 @@ export default function Home() {
             </ul>
           </>
         )}
+      </section>
+
+      <section id="experience">
+        <div className="section-rule" style={{ marginTop: '3.5rem' }}>
+          <span>Experience</span>
+        </div>
+        <ul className="log">
+          {roles.map((r) => (
+            <li className="role" key={`${r.org}-${r.start}`}>
+              <div className="role-when">
+                {formatSpan(r.start, r.end)}
+                <span className="role-where">{r.location}</span>
+              </div>
+              <div>
+                <h3>
+                  {r.role} <span className="role-org">· {r.org}</span>
+                </h3>
+                <p>{r.summary}</p>
+                {r.highlight && <p className="role-highlight">{r.highlight}</p>}
+                {r.stack.length > 0 && (
+                  <ul className="stack">
+                    {r.stack.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section id="about" className="about">

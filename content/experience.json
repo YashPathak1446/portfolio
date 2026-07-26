@@ -1,0 +1,52 @@
+[
+  {
+    "role": "Software Engineer Intern",
+    "org": "Sorenson Communications",
+    "location": "Salt Lake City, UT",
+    "start": "2025-06",
+    "end": "2025-10",
+    "summary": "Provisioned AWS infrastructure end to end in Terraform — API Gateway, Lambda, least-privilege IAM, CloudWatch — wired into GitHub Actions. Built a log pipeline that decoded gzip-compressed, base64-encoded CloudWatch test logs into structured Dynatrace records, and a service-health dashboard the operations team adopted in place of manual log inspection.",
+    "highlight": "Killed a 25-second downstream read timeout with a dual-Lambda fan-out: the first Lambda returns 201 immediately and spawns the second to do the slow work in the background.",
+    "stack": ["Python", "Terraform", "AWS Lambda", "Docker", "Dynatrace", "GitHub Actions"]
+  },
+  {
+    "role": "Software Engineer Intern",
+    "org": "101gen.ai",
+    "location": "Bay Area, CA",
+    "start": "2024-07",
+    "end": "2024-10",
+    "summary": "Prototyped a three-tier storage system over PubMed's 36-million-article corpus — Weaviate as the hot vector index, MongoDB for warm metadata, S3 for cold archive — plus a batch ingestion pipeline pulling full-text articles over FTP and pre-computing dense embeddings. Flask endpoints served retrieved article context into LLM prompts.",
+    "highlight": "Chose Weaviate over Pinecone and AWS Elasticsearch after benchmarking all three on retrieval latency, hybrid-search support, and ingestion throughput.",
+    "stack": ["Python", "Weaviate", "MongoDB", "AWS S3", "Flask", "Docker"]
+  },
+  {
+    "role": "AI Engineer Intern",
+    "org": "AI Ensured",
+    "location": "Remote",
+    "start": "2023-07",
+    "end": "2023-09",
+    "summary": "Fine-tuned BERT-family models on MedQuAD's 60,000+ NIH-sourced clinical question-answer pairs, preprocessing into SQuAD-style format and comparing baselines on precision, recall, and F1. Scoped a medical entity recognition pipeline pairing LayoutLM for spatially-structured EHR documents with ClinicalBERT.",
+    "highlight": "",
+    "stack": ["PyTorch", "Hugging Face", "scikit-learn"]
+  },
+  {
+    "role": "AI Model Tester",
+    "org": "Outlier AI",
+    "location": "Remote — contract",
+    "start": "2024-06",
+    "end": "",
+    "summary": "RLHF evaluation: reviewing model-generated Python across algorithmic and software-engineering tasks, writing critiques that identify logic errors and edge-case failures, and ranking candidate responses into preference data.",
+    "highlight": "",
+    "stack": []
+  },
+  {
+    "role": "Computer Science Tutor",
+    "org": "tutor.com",
+    "location": "Remote",
+    "start": "2023-07",
+    "end": "",
+    "summary": "One-on-one Python and Java tutoring for 100+ students — debugging their code live, working through data structures, recursion, and complexity analysis.",
+    "highlight": "",
+    "stack": []
+  }
+]

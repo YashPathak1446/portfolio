@@ -393,3 +393,56 @@ a { color: inherit; }
     transition-duration: 0.01ms !important;
   }
 }
+
+.log { list-style: none; margin: 0; padding: 0; }
+
+.role {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 0 2rem;
+  padding: 1.9rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+
+.role-when {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding-top: 0.45rem;
+  white-space: nowrap;
+}
+
+.role-where { font-size: 0.6875rem; margin-top: 0.35rem; display: block; }
+
+.role h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.1875rem;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.role-org { color: var(--signal); }
+
+.role p {
+  margin: 0.6rem 0 0;
+  color: var(--ink-soft);
+  max-width: var(--measure);
+}
+
+.role-highlight {
+  margin-top: 0.9rem;
+  padding: 0.75rem 1rem;
+  background: var(--wash);
+  border-left: 2px solid var(--signal);
+  border-radius: 0;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 40rem) {
+  .role { grid-template-columns: 1fr; gap: 0.5rem; }
+  .role-when { padding-top: 0; }
+  .role-where { display: inline; margin-left: 0.75rem; }
+}
