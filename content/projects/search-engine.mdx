@@ -1,0 +1,65 @@
+---
+title: "Search Engine"
+tagline: "A crawler and inverted index over 30,000+ documents, built to run on a machine that could not hold the index in memory."
+stack: ["Python", "BeautifulSoup", "NLTK", "Flask", "Inverted Index", "TF-IDF"]
+repo: "https://github.com/YashPathak1446/Search-Engine"
+demo: ""
+date: "2023-04"
+status: "Complete"
+featured: true
+order: 3
+cover: "/images/projects/search-engine/pipeline.svg"
+coverAlt: "Index-time and query-time pipeline"
+---
+
+## The problem
+
+Build a search engine over 30,000+ crawled web documents that returns ranked results in under a second — on a machine that cannot hold the corpus or the full index in RAM.
+
+The memory constraint is the entire project. Without it this is a weekend exercise: parse everything, build a dictionary, score at query time. With it, every design decision has to answer *what does this cost when the data doesn't fit.*
+
+**Result:** sub-second ranked retrieval over a 30K-document corpus, with peak memory during indexing bounded to roughly 100 MB regardless of how large the corpus grows.
+
+## Why this project is still featured
+
+I built this in 2023, before I had touched a vector database. Two years later at 101gen.ai I was benchmarking Weaviate, Pinecone, and AWS Elasticsearch for a RAG pipeline over PubMed's 36-million-article corpus — different vocabulary, identical problems. Index structure, memory versus latency, what you precompute versus what you defer, how you keep near-duplicates from polluting results.
+
+Having built retrieval from the primitives up meant approximate nearest neighbor search read as a variation on something I understood rather than a black box with a good README. That's why the oldest project here is still on the page.
+
+## The two decisions that matter
+
+### Bounded-memory indexing through partial flush and merge
+
+The index is built in memory, but only up to a point. Once the in-memory structure crosses 100 MB, it flushes to disk as TSV and clears. Every flush after the first merges the new partial index against the existing on-disk one, term by term, rather than appending a second index beside it.
+
+This is what makes corpus size and memory usage independent. Peak memory is a function of the flush threshold, not the number of documents — a 30K corpus and a 300K corpus have the same memory ceiling, the larger one just flushes more often. The cost moves to indexing time, which is the right place to put it for a workload where you index once and query many times.
+
+The merge is the part that took the longest to get right, and it's also the part that would break first at scale: it's a two-way merge holding the previous index open while writing the new one, so it needs disk headroom equal to the index size, and it rewrites every term on every flush rather than only the affected ones.
+
+### A byte-offset map so queries never scan the index
+
+The postings live in `indexer.tsv`, one line per term: the term, its document frequency, then a positional posting list per document. Alongside it, a JSON map records the exact byte offset of every term's line, captured during writing.
+
+At query time this turns lookup into a seek. For a query term, read its offset from the map, `seek()` straight to that byte in the file, and read one line. The engine never scans the TSV, never loads the index, and never touches the corpus — a term appearing in 200 documents costs one seek and one line read whether the index holds 30 thousand terms or 30 million.
+
+This is the mechanism the sub-second requirement actually rests on, and it's the closest thing in the project to what a real index does. The tradeoff is that the offset map itself has to stay resident in memory, which is fine at this scale and would eventually need its own on-disk structure.
+
+## Query processing
+
+Terms are ranked by descending IDF before any postings are fetched, so the rarest and most discriminating terms are processed first. Queries composed largely of stop words get pruned — when stop words exceed 40% of the terms, the low-signal tail is dropped rather than fetching postings lists that would match nearly everything and contribute nothing to ranking.
+
+Scoring is TF-IDF with cosine similarity, normalizing for document length so long documents don't win by simply containing more words. The engine returns the top five URLs, through either a Flask web interface or a terminal query loop.
+
+Deduplication happens during the crawl rather than after: URLs are normalized by stripping `#fragment` anchors so the same page reached through three in-page links is indexed once, and responses outside the 2xx–3xx range are dropped before parsing. This is URL-level deduplication, not content-level — two genuinely distinct URLs serving near-identical content will both be indexed.
+
+## Limitations I'd fix
+
+**No stemming.** Tokenization lowercases and strips non-alphanumerics, but *running*, *ran*, and *runs* remain three unrelated terms. Porter stemming is a small change with a large recall effect and it's the first thing I'd add.
+
+**Lexical matching only.** A query for *car* retrieves nothing about *automobiles*, because nothing in TF-IDF knows the two are related. This is the exact failure that dense embeddings solve, and running into it here is what made the case for a vector database obvious to me later.
+
+**No ranking evaluation.** The project measures latency and never measures relevance. There's no answer to whether result #1 is better than result #4 — precision@k against a small hand-labeled query set would have been cheap and would have made every ranking decision testable instead of assumed.
+
+**Content-level deduplication.** URL normalization catches the anchor case but not templated pages that differ by a nav element. SimHash or shingling over document text is the standard fix.
+
+> **TODO — visual.** Skip the Flask UI; it's unstyled and undersells this. Two better options: a pipeline diagram (crawl → normalize → tokenize → buffer → flush/merge → TSV + offset map → seek → rank), or an annotated excerpt of a TSV line beside its offset-map entry with an arrow showing the seek. The second one shows the actual mechanism in about six lines.

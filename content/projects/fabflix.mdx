@@ -1,0 +1,74 @@
+---
+title: "Fabflix"
+tagline: "A movie storefront rebuilt as a containerized Kubernetes deployment, with split read/write datasources and a three-stage fuzzy search cascade."
+stack: ["Java", "JavaScript", "MySQL", "Docker", "Kubernetes", "AWS", "Nginx"]
+repo: ""
+demo: "https://www.youtube.com/watch?v=yhKR3EB0HRk"
+date: "2025-01"
+status: "Complete"
+team: "Two-person team (UCI CS122B)"
+featured: true
+order: 2
+cover: "/images/projects/fabflix/cover.png"
+coverAlt: "Fabflix login page"
+---
+
+> **Note on the repo link.** The original lives in the course GitHub org and its history contains committed credentials. If you publish, publish a fresh repo with no history and placeholder secrets, then put the URL here. Until then, leave `repo` empty rather than linking somewhere broken.
+
+## The problem
+
+A movie storefront is a deceptively good systems exercise. Reads vastly outnumber writes, search has to tolerate people typing half a title from memory, sessions carry a cart that can't evaporate mid-checkout, and login is exactly the endpoint bots go after.
+
+The interesting constraint was that it had to survive things going wrong — a pod dying, a database node failing, traffic spiking — rather than merely work on a laptop. Most of the engineering is in that gap.
+
+This was a two-person project. [**One sentence naming your half.** From the commit history you owned the JWT and login path, the payment servlet split, and the Docker image restructuring for the multi-service deployment — worth saying plainly rather than leaving the reader to guess.]
+
+## Architecture
+
+The app ships two ways: `fabflix.yaml` deploys it as a single service, and `fabflix-multi.yaml` splits login and movies into independent Deployments with their own Services, each horizontally scaled across pod replicas. Images are built through multi-stage Dockerfiles and run on AWS EC2 behind Nginx doing path-based routing.
+
+Sessions use cookie-based affinity. That was forced rather than chosen: cart state lives in the session, and without affinity a user's requests scatter across replicas and their cart appears to randomly empty. Sticky sessions are the pragmatic answer at this scale, and also the first thing you'd remove to scale further — externalizing session state to Redis lets any pod serve any request.
+
+## Decisions worth explaining
+
+### Splitting reads onto a replica
+
+`context.xml` defines two separate `jdbc/moviedb` DataSources — primary and secondary — behind Tomcat's JDBC pool at `maxTotal="100"`, with read traffic routed to the replica.
+
+The reasoning is workload shape. Browsing a catalog is almost entirely reads, and those reads were competing with the write path for pool connections during high-concurrency browsing. Splitting them means catalog traffic stops contending with checkout traffic. The tradeoff is replication lag — a write isn't instantly visible on the replica — which is fine for a movie catalog and would not be for an account balance.
+
+### A three-stage search cascade instead of one algorithm
+
+Autocomplete runs a cascade rather than a single matching strategy:
+
+1. **MySQL FULLTEXT** in `IN BOOLEAN MODE` — fast, indexed, handles the common case
+2. **`LIKE` substring match** — catches partial tokens FULLTEXT misses
+3. **Levenshtein edit distance** via UCI's Flamingo UDF — catches actual typos
+
+with edit-distance thresholds scaling from 1 to 4 characters based on query length.
+
+The cascade exists because these three have inverted cost and recall profiles. FULLTEXT is cheap and precise but brittle against typos. Edit distance is tolerant but expensive, and running it on every keystroke isn't viable. Ordering them cheapest-first means the expensive stage only runs for the queries the cheap stages couldn't answer.
+
+The adaptive threshold matters more than it looks. A fixed edit distance of 3 is reasonable against a fifteen-character title and catastrophic against a four-character one, where it matches nearly everything. Scaling tolerance to query length keeps short queries precise and long queries forgiving.
+
+### Testing the failure modes, not just the happy path
+
+Load testing ran under both high-traffic and induced-outage scenarios, with fault tolerance coming from Nginx balancing across replicas, JDBC failover through the primary/replica pool, and session preservation via cookie affinity.
+
+[**This is where the page needs your specific memory.** What actually broke the first time you ran the outage scenario? Did failover work immediately or did connections hang? Did sticky sessions survive a pod restart? One concrete "I expected X and got Y" is worth more than the paragraph above it — readers discount claims of resilience and believe stories about it failing.]
+
+## Security
+
+Passwords are hashed with Jasypt's `StrongPasswordEncryptor` (salted) in `VerifyPassword.java`, authentication is a stateless JWT issued by `JwtUtil`, and reCAPTCHA guards the login endpoints.
+
+The token is set `HttpOnly`, which is the detail worth stating out loud: it puts the JWT out of reach of JavaScript, so XSS can't lift the session. A token in `localStorage` is the common shortcut and the reason token theft is usually as easy as it is.
+
+Worth being honest in the same breath: the signing secret and the reCAPTCHA keys were hardcoded in source rather than injected as environment variables or Kubernetes Secrets. Good crypto choices, wrong key management — and knowing the difference is most of the lesson.
+
+## What I'd do differently
+
+**Secrets out of source.** Kubernetes Secrets or environment variables, injected at deploy time. This is the first fix and the one with real consequences.
+
+**Externalize session state.** Sticky sessions are a scaling ceiling; Redis-backed sessions remove the affinity requirement entirely.
+
+[**One or two more, specific.** Candidates: whether three stacked MySQL strategies should have been a single Elasticsearch index; whether `maxTotal="100"` was measured or inherited from a default; whether replication lag ever surfaced a visible inconsistency and how you'd detect it if it did.]

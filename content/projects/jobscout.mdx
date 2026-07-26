@@ -1,0 +1,88 @@
+---
+title: "JobScout"
+tagline: "A multi-agent pipeline that turns hundreds of raw job postings into tailored resumes in about two minutes."
+stack: ["Python", "Google ADK", "Gemini", "React", "FastAPI"]
+repo: "https://github.com/YashPathak1446/jobscout"
+demo: "" # TODO: add once the web app is deployed
+date: "2026-01"
+status: "Active"
+featured: true
+order: 1
+cover: ""
+coverAlt: ""
+---
+
+## The problem
+
+Tailoring a resume to a specific job posting works. It is also the single most tedious part of a job search: read the description, figure out which of your experiences actually map to it, rewrite the bullets to use the posting's vocabulary, check that everything still fits on one page, repeat. Doing it honestly takes twenty minutes a posting. Nobody does it for a hundred postings.
+
+I wanted to find out whether the whole loop could be automated without producing the kind of generic LLM output that a recruiter can spot in three seconds — and without the pipeline falling over the moment an external API had a bad day.
+
+**Result:** JobScout ingests hundreds of raw postings and produces tailored resumes in roughly two minutes on a cold run, and about 38 seconds on a warm one. It has run to completion through a mid-run Gemini outage.
+
+> **TODO — screenshot goes here.** A terminal recording of a full run, or a before/after of one resume against one job description. This is the highest-value visual on the page; put it directly under this line.
+
+## How it works
+
+The pipeline is four specialized agents built on Google's Agent Development Kit, coordinated by a stateful orchestrator:
+
+| Agent | Responsibility |
+|---|---|
+| **Discovery** | Pulls raw job postings from source feeds |
+| **Enrichment** | Normalizes and structures each job description |
+| **Semantic analysis** | Scores how well each of my experiences and projects fits the posting |
+| **Generation** | Writes the tailored resume from the selected components |
+
+The orchestrator holds run state across all four, which is what makes caching and deduplication possible between stages rather than just inside them.
+
+> **TODO — architecture diagram.** Boxes for the four agents plus the orchestrator, with the cache and dedup store hanging off the side. Excalidraw is fine; it doesn't need to be pretty.
+
+## Decisions worth explaining
+
+### Four agents instead of one large prompt
+
+[**Your reasoning here** — this is the first question an interviewer will ask, and the honest answer is more interesting than a textbook one. Was it that each stage needed different context and a single prompt kept losing the thread? That failures were impossible to localize? That you wanted to swap the discovery source without touching generation? Two or three sentences.]
+
+The practical payoff was that when generation started producing bad output, I could tell whether the problem was the generator or the matcher feeding it. In a monolithic prompt, that distinction disappears.
+
+### Hybrid matching, not pure embeddings
+
+The semantic analysis layer scores fit using Gemini embeddings with cosine similarity, but combines that with keyword overlap and rule-based selection logic rather than relying on embeddings alone.
+
+Pure semantic similarity is good at recognizing that "built a batch ingestion pipeline" is relevant to a data engineering posting. It is bad at the thing job applications actually run on: exact keyword matching against an ATS filter. A posting that says *Terraform* wants the literal string *Terraform*, and a nearby-in-embedding-space paraphrase is worth nothing. Combining the two gets both the conceptual match and the literal one.
+
+### Caching as an architectural decision, not an optimization
+
+An embedding cache plus a persistent job-deduplication layer cut warm runs from 137 seconds to 38 — about 3.6x.
+
+The interesting part is what gets cached and why. My resume components barely change between runs, so re-embedding them every time is pure waste. Job postings recur constantly across sources and across days, so re-scraping and re-processing a posting I've already seen is the same waste at a larger scale. Both are cheap to key and safe to reuse. Deciding this up front, rather than bolting a cache on later, is what let the dedup store persist across runs instead of living inside one.
+
+### Assuming the model would produce invalid output
+
+Generated resumes have hard constraints: bullets have to fit a length range, sections have to hold a bullet count, the whole thing has to fit a page. An LLM will violate these regularly, and no amount of prompt tightening gets the violation rate to zero.
+
+So the pipeline validates every generated resume against those constraints, and on a violation dispatches a targeted repair prompt naming the specific failure rather than regenerating from scratch. If repair also fails, the resume lands in a `needs_review` queue instead of being silently emitted or crashing the run.
+
+That last part matters more than the repair loop itself. A partial result you can inspect is worth far more than a clean failure.
+
+## The failure I designed for, and then got
+
+Mid-run, the Gemini API returned a 503.
+
+The pipeline finished. Degraded work routed to `needs_review`, completed work stayed completed, and the run produced usable output instead of a stack trace and an empty output directory.
+
+I want to be precise about why that happened, because it wasn't luck: I had built the fallback path before I needed it, on the assumption that any external API is unavailable some fraction of the time and that a batch job which discards an hour of work over one bad response is badly designed. Getting to watch that assumption pay off in production conditions was the most satisfying moment of the project.
+
+[**Optional but strong** — if you have the log output from that run, put an excerpt here. Real evidence of a system degrading gracefully is rare in a portfolio.]
+
+## What I'd do differently
+
+[**Your answer here.** Two or three items, and be specific — vague self-criticism reads as false modesty. Candidates worth considering: whether the rule-based selection logic should have been learned instead of hand-tuned; whether ADK was the right abstraction or whether it added indirection you didn't need; whether the cache keying strategy would survive a resume that changes frequently; how you'd evaluate output quality, since right now there's no metric for whether a tailored resume is actually *better*.]
+
+That last one is the honest gap. I can measure how fast the pipeline runs and whether output is well-formed. I don't yet have a way to measure whether a tailored resume outperforms an untailored one, and that's the question the whole project is premised on.
+
+## What's next
+
+A React and FastAPI web application with browser-based local persistence, turning JobScout from a tool I run locally into something other job-seekers can use without installing anything. Resume data stays in the browser, which sidesteps both the privacy question and the cost of storing other people's documents.
+
+[Update this section the moment it ships — and move the deployed link to the top of the page.]

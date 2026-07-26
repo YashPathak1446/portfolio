@@ -1,0 +1,69 @@
+---
+title: "Antibiotic Resistance Prediction"
+tagline: "Predicting resistance class from bacterial protein sequences, where one class held 80% of the data and the classes that mattered most were the rarest."
+stack: ["Python", "scikit-learn", "XGBoost", "Biopython", "TF-IDF"]
+repo: "https://github.com/YashPathak302/cs189-antibiotic-prediction"
+demo: ""
+date: "2025-03"
+status: "Complete"
+featured: true
+order: 4
+cover: ""
+coverAlt: ""
+---
+
+> **TODO — check the repo URL.** It points at `YashPathak302`, but everything else on this site is `YashPathak1446`. If that's a teammate's account, fork it to your own or the link will read as someone else's work.
+
+## The problem
+
+Given a bacterial protein sequence, predict which class of antibiotic it confers resistance to. 6,088 sequences from the CARD database (v3.2.4), sorted into 11 resistance categories.
+
+The dataset had a property that determined the entire project: **one class held roughly 80% of it.** Several of the remaining classes had fewer than 200 sequences each — and those rare classes included carbapenem resistance, which is clinically among the most consequential things on the list.
+
+So the naive success metric is actively misleading. A model that ignores the input and always predicts the majority class scores 80% accuracy while being medically useless, because it never once flags the resistance you most need to catch.
+
+**Result:** XGBoost at 94.2% accuracy (±0.2%) under stratified 5-fold cross-validation — but the number that matters is a macro-F1 of 0.71 against Random Forest's 0.56, driven by recall on the minority classes: carbapenem 0.17 → 1.00, aminoglycoside 0.42 → 0.89.
+
+> **TODO — confusion matrix, or per-class recall as a bar chart with Random Forest and XGBoost side by side.** The minority-class recall jump is the whole argument; show it rather than describing it.
+
+## How it works
+
+**Parse.** Biopython reads the CARD FASTA files; regex extraction pulls ARO ontology terms; keyword classification maps them into the 11 resistance categories.
+
+**Featurize.** Protein sequences get treated as text — 6-mer extraction (169K unique k-mers across the corpus) followed by TF-IDF vectorization.
+
+**Train and evaluate.** Random Forest and XGBoost compared under stratified 5-fold cross-validation, scored on macro-F1 rather than accuracy.
+
+## Decisions worth explaining
+
+### Macro-F1 as the primary metric
+
+This is the decision the whole project rests on. Accuracy on an 80/20-skewed dataset measures almost nothing — a majority-class predictor achieves 80% without learning anything. Macro-F1 averages F1 across classes without weighting by class size, so a class holding 3% of the data contributes exactly as much to the score as the class holding 80%.
+
+That reframes what a "good" model is. The 15-point macro-F1 gap between XGBoost and Random Forest is a much more meaningful result than either model's accuracy figure, and if I'd optimized for accuracy I would likely have shipped the worse model.
+
+### K-mers instead of alignment-based features
+
+Treating a protein sequence as a document of overlapping 6-character substrings makes standard text-classification machinery apply directly. It also throws away long-range structure — a k-mer representation has no idea two motifs 300 residues apart are related.
+
+[**Your reasoning here.** Was this compute-driven, a scoping decision, or did you test alternatives? "6 was the largest k that stayed tractable at 169K features" is a perfectly good answer if that's what happened.]
+
+### Conservative augmentation instead of SMOTE
+
+To address the imbalance, I generated 1,348 synthetic sequences by applying 5%-rate amino-acid mutations to minority classes with fewer than 200 examples, expanding the training set from 4,692 to 6,040.
+
+SMOTE is the reflexive choice here and it's the wrong one for this data. SMOTE interpolates between points in feature space — and the feature space here is 169K-dimensional TF-IDF over k-mers. A point halfway between two sequences in that space doesn't correspond to any actual protein; it's a k-mer histogram that no sequence could produce. Mutating at the sequence level and re-extracting features keeps every synthetic example a real, biologically plausible sequence. The 5% rate is deliberately low for the same reason: enough variation to be useful, not enough to mutate a sequence out of its own resistance class.
+
+## The result I don't fully trust
+
+Carbapenem recall went from 0.17 to 1.00. Perfect recall on the rarest and most clinically important class is the best-looking number in the project, and it's the one I'd interrogate hardest.
+
+**The specific concern is fold contamination.** If augmentation happened before the cross-validation split, then mutated copies of a sequence can land in the training fold while the original sits in the test fold. At a 5% mutation rate those are near-identical, so the model is effectively being tested on data it trained on — and minority classes, which received the most augmentation, are exactly where that inflation would concentrate.
+
+[**Verify which order your pipeline used, and state it plainly here.** If augmentation ran inside each fold on training data only, say so — it's a methodological detail most people get wrong and demonstrating you got it right is a real credential. If it ran before the split, say that too, note the results are likely optimistic, and describe the corrected setup. An ML interviewer will ask this question. Answering it before they do is far stronger than being caught by it.]
+
+With a class of that size, a single test-fold example flipping also moves recall by a large fraction, so the confidence interval around 1.00 is wide regardless.
+
+## What I'd do differently
+
+[**Two or three beyond the above.** Candidates: a protein language model embedding (ESM-2) as a feature baseline against k-mers; whether the keyword-based mapping from ARO terms to 11 categories introduced label noise, since that step is rule-based and unvalidated; reporting per-class confidence intervals rather than point estimates given how small the minority classes are.]
