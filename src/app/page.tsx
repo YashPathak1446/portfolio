@@ -1,13 +1,21 @@
 import { getAllProjects, formatYear } from '@/lib/projects';
+import { getRecentRepos } from '@/lib/github';
 import { getExperience, formatSpan } from '@/lib/experience';
 import EmbeddingField from '@/components/EmbeddingField';
 import Contact from '@/components/Contact';
 import Resume from '@/components/Resume';
+import SectionHeading from '@/components/SectionHeading';
 import GitHubActivity from '@/components/GitHubActivity';
 
-export default function Home() {
+export default async function Home() {
   const projects = getAllProjects();
   const roles = getExperience();
+  const repos = await getRecentRepos(5);
+
+  // section numbers derive from what actually renders, so an absent
+  // GitHub feed can't leave a gap in the sequence
+  let n = 0;
+  const idx = () => String(++n).padStart(2, '0');
   const featured = projects.filter((p) => p.featured);
   const rest = projects.filter((p) => !p.featured);
 
@@ -33,9 +41,11 @@ export default function Home() {
       </section>
 
       <section id="work">
-        <div className="section-rule">
-          <span>Selected work</span>
-        </div>
+        <SectionHeading
+          index={idx()}
+          label="Selected work"
+          title="Four systems, explained properly."
+        />
         <ul className="work-grid">
           {featured.map((p) => (
             <li className="card reveal" key={p.slug}>
@@ -104,9 +114,7 @@ export default function Home() {
       </section>
 
       <section id="experience" className="band">
-        <div className="section-rule" style={{ marginTop: '3.5rem' }}>
-          <span>Experience</span>
-        </div>
+        <SectionHeading index={idx()} label="Experience" title="Where I've worked." />
         <ul className="log">
           {roles.map((r) => (
             <li className="role" key={`${r.org}-${r.start}`}>
@@ -133,10 +141,10 @@ export default function Home() {
         </ul>
       </section>
 
-      <GitHubActivity />
+      <GitHubActivity repos={repos} index={repos.length ? idx() : ""} />
 
       <section id="about" className="about">
-        <h2>About</h2>
+        <SectionHeading index={idx()} label="About" title="A bit more." />
         <div className="bio">
           <img className="portrait" src="/images/yash_pathak.jpeg" alt="Yash Pathak" />
           <div>
@@ -155,9 +163,9 @@ export default function Home() {
         </div>
       </section>
 
-      <Resume />
+      <Resume index={idx()} />
 
-      <Contact />
+      <Contact index={idx()} />
     </main>
   );
 }

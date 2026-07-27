@@ -1,17 +1,18 @@
-import { getRecentRepos, relativeTime } from '@/lib/github';
+import { relativeTime, type Repo } from '@/lib/github';
+import SectionHeading from '@/components/SectionHeading';
 
-export default async function GitHubActivity() {
-  const repos = await getRecentRepos(5);
+export default function GitHubActivity({ repos, index }: { repos: Repo[]; index: string }) {
   if (repos.length === 0) return null;
 
   return (
     <section id="activity">
-      <div className="section-rule">
-        <span>Recent activity</span>
-        <a className="section-aside" href="https://github.com/YashPathak1446">
-          github.com/YashPathak1446 ↗
-        </a>
-      </div>
+      <SectionHeading
+        index={index}
+        label="Recent activity"
+        title="What I've been pushing."
+        aside="github.com/YashPathak1446"
+        asideHref="https://github.com/YashPathak1446"
+      />
       <ul className="repos">
         {repos.map((r) => (
           <li key={r.name}>

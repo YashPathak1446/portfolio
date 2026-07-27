@@ -6,7 +6,7 @@ const EMAIL = 'yashpathak1446@gmail.com';
 const GITHUB = 'https://github.com/YashPathak1446';
 const LINKEDIN = 'https://www.linkedin.com/in/yash-pathak-6074a1210/';
 
-export default function Contact() {
+export default function Contact({ index }: { index: string }) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -20,9 +20,11 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="band contact">
+    <section id="contact" className="contact">
       <div className="contact-inner">
-        <p className="eyebrow">Contact</p>
+        <p className="sec-label">
+          <span className="sec-index">{index}</span> Contact
+        </p>
         <h2>
           I&apos;m looking for new grad and entry-level software roles.
         </h2>

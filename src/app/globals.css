@@ -9,6 +9,7 @@
   --rule: #dde1e7;
   --signal: #1d6e5a;
   --wash: #e9f0ed;
+  --on-signal: #ffffff;
 
   --display: 'Bricolage Grotesque', system-ui, sans-serif;
   --body: 'Source Serif 4', Georgia, serif;
@@ -27,6 +28,7 @@
   --rule: #262d38;
   --signal: #5dcaa5;
   --wash: #16241f;
+  --on-signal: #0e1116;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -39,6 +41,7 @@
     --rule: #262d38;
     --signal: #5dcaa5;
     --wash: #16241f;
+    --on-signal: #0e1116;
   }
 }
 
@@ -869,7 +872,7 @@ html { overflow-x: clip; }
 
 .btn-primary {
   background: var(--signal);
-  color: var(--paper);
+  color: var(--on-signal);
   border-color: var(--signal);
 }
 
@@ -1095,3 +1098,178 @@ html { overflow-x: clip; }
   .resume-actions { flex-direction: column; align-items: stretch; }
   .resume-sheet { max-width: none; }
 }
+
+/* ---------- section headings (#7) ---------- */
+
+.sec {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0 1rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--ink);
+  margin-bottom: 2rem;
+}
+
+.sec-index {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--signal);
+  letter-spacing: 0.04em;
+}
+
+.sec-label {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.4rem;
+}
+
+.sec-title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.65rem, 3.6vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.sec-aside {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.sec-aside:hover { color: var(--signal); }
+
+.about .sec { margin-bottom: 2rem; }
+.about h2 { display: none; }
+
+/* ---------- toggle switch (#6) ---------- */
+
+.switch {
+  background: none;
+  border: 0;
+  padding: 0.4rem 0;
+  cursor: pointer;
+  line-height: 0;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.switch[data-ready='true'] { opacity: 1; }
+
+.switch-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 3.25rem;
+  height: 1.75rem;
+  padding: 0 0.42rem;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.switch:hover .switch-track { border-color: var(--signal); }
+
+.switch-icon {
+  position: relative;
+  z-index: 1;
+  color: var(--muted);
+  transition: color 220ms ease;
+  display: flex;
+}
+
+.switch[aria-checked='false'] .switch-sun { color: var(--signal); }
+.switch[aria-checked='true'] .switch-moon { color: var(--signal); }
+
+.switch-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0.18rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  transform: translate(0, -50%);
+  transition: transform 280ms cubic-bezier(0.4, 1.3, 0.5, 1);
+  z-index: 0;
+}
+
+.switch[aria-checked='true'] .switch-thumb { transform: translate(1.44rem, -50%); }
+
+/* ---------- inverted contact block ---------- */
+
+.contact {
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+  margin-top: clamp(3rem, 7vw, 5rem);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Inside this block the surface is --ink, so every foreground colour must be
+   derived from --paper. Hardcoding white breaks the moment the theme flips. */
+.contact .sec-label { color: color-mix(in srgb, var(--paper) 58%, transparent); }
+.contact h2 { color: var(--paper); }
+.contact .contact-lead { color: color-mix(in srgb, var(--paper) 78%, transparent); }
+.contact .btn-primary { background: var(--signal); border-color: var(--signal); color: var(--on-signal); }
+.contact .btn-ghost { color: color-mix(in srgb, var(--paper) 88%, transparent); border-color: color-mix(in srgb, var(--paper) 30%, transparent); }
+.contact .btn-ghost:hover { border-color: var(--signal); color: var(--signal); }
+.contact .contact-links { border-top-color: color-mix(in srgb, var(--paper) 18%, transparent); }
+.contact .contact-links a { color: color-mix(in srgb, var(--paper) 78%, transparent); }
+.contact .contact-links a:hover { color: var(--signal); }
+
+@media (max-width: 40rem) {
+  .sec { grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0 0.75rem; }
+  .sec-aside { grid-column: 2; justify-self: start; }
+  .sec-title { font-size: 1.5rem; }
+}
+
+/* ---------- mobile pass (#8) ---------- */
+
+.masthead nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.masthead { padding-top: 1rem; padding-bottom: 0.75rem; }
+
+@media (max-width: 40rem) {
+  .masthead nav { gap: 0 1.1rem; }
+  .hero { padding-top: 2.5rem; }
+  .record { margin-top: 2rem; }
+  .card-body { padding-top: 0.9rem; }
+  .work-grid { gap: 2.25rem 0; }
+  .band { padding-block: 2.5rem; margin-block: 2.5rem; }
+  .role { padding: 1.4rem 0; }
+  .prose { padding-bottom: 3rem; }
+}
+
+/* the field is decorative; skip it on phones to save paint and battery */
+@media (max-width: 46rem) {
+  .field { display: none; }
+}
+
+.contact .sec-index { color: var(--signal); margin-right: 0.5rem; }

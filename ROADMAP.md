@@ -22,10 +22,13 @@ Grounded in what recruiters actually do: under 30 seconds on a first visit,
 
 ## Non-functional
 
-- [ ] **6. Real theme toggle UI.** A switch with icons and a sliding thumb,
-      not a clickable word.
-- [ ] **7. Section division.** Distinct movements rather than uniform hairline
-      rules — larger headers, alternating surfaces, consistent labelling.
+- [x] **6. Theme toggle.** Pill switch with sun/moon icons and a sliding
+      thumb, `role="switch"` + `aria-checked`, fades in once hydrated so it
+      can't flash the wrong state.
+- [x] **7. Section division.** Numbered headings with a display-size title on
+      a heavy rule. Numbers derive from what actually renders, so an absent
+      GitHub feed can't leave a gap. Contact is an inverted block to close
+      the page.
 - [ ] **8. Mobile design pass.** Currently only verified for "doesn't
       overflow." 60% of recruiters are on phones; it deserves real attention.
 
