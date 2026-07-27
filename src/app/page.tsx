@@ -24,21 +24,30 @@ export default function Home() {
         </div>
         <ul className="index">
           {featured.map((p) => (
-            <li key={p.slug}>
+            <li className="reveal" key={p.slug}>
               <a className="entry" href={`/projects/${p.slug}`}>
-                <span className="entry-head">
-                  <span className="entry-key">{p.slug}</span>
-                  <span className="entry-title">{p.title}</span>
-                  <span className="leader" aria-hidden="true" />
-                  <span className="entry-year">{formatYear(p.date)}</span>
-                  <span className="seek" aria-hidden="true">→</span>
-                </span>
-                <p className="entry-line">{p.tagline}</p>
-                <ul className="stack">
-                  {p.stack.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ul>
+                <div className="entry-grid">
+                  <div>
+                    <span className="entry-head">
+                      <span className="entry-key">{p.slug}</span>
+                      <span className="entry-title">{p.title}</span>
+                      <span className="leader" aria-hidden="true" />
+                      <span className="entry-year">{formatYear(p.date)}</span>
+                      <span className="seek" aria-hidden="true">→</span>
+                    </span>
+                    <p className="entry-line">{p.tagline}</p>
+                    <ul className="stack">
+                      {p.stack.map((s) => (
+                        <li key={s}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  {p.cover && (
+                    <div className="thumb">
+                      <img src={p.cover} alt="" loading="lazy" />
+                    </div>
+                  )}
+                </div>
               </a>
             </li>
           ))}
@@ -100,17 +109,22 @@ export default function Home() {
 
       <section id="about" className="about">
         <h2>About</h2>
-        <p>
-          I graduated from UC Irvine with a B.S. in Computer Science and spent the
-          last two years split between cloud infrastructure and applied machine
-          learning — building CI/CD and observability pipelines on AWS, and a
-          retrieval-augmented system over a 36-million-article corpus.
-        </p>
-        <p>
-          The thread connecting them is that models are the easy part. Whatever
-          makes them reachable, fast, and still standing after an upstream 503 is
-          the work I keep coming back to.
-        </p>
+        <div className="bio">
+          <img className="portrait" src="images/yash_pathak.jpeg" alt="Yash Pathak" />
+          <div>
+          <p>
+            I graduated from UC Irvine with a B.S. in Computer Science and spent the
+            last two years split between cloud infrastructure and applied machine
+            learning — building CI/CD and observability pipelines on AWS, and a
+            retrieval-augmented system over a 36-million-article corpus.
+          </p>
+          <p>
+            The thread connecting them is that models are the easy part. Whatever
+            makes them reachable, fast, and still standing after an upstream 503 is
+            the work I keep coming back to.
+          </p>
+          </div>
+        </div>
       </section>
     </main>
   );

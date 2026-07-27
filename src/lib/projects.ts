@@ -58,3 +58,10 @@ export function getAllProjects(): Project[] {
 export function formatYear(date: string): string {
   return date?.slice(0, 4) ?? '';
 }
+
+export function getAdjacent(slug: string): { prev: Project | null; next: Project | null } {
+  const all = getAllProjects();
+  const i = all.findIndex((p) => p.slug === slug);
+  if (i === -1) return { prev: null, next: null };
+  return { prev: all[i - 1] ?? null, next: all[i + 1] ?? null };
+}

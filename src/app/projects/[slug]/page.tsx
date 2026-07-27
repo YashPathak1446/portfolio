@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { getProject, getSlugs, formatYear } from '@/lib/projects';
+import { getProject, getSlugs, formatYear, getAdjacent } from '@/lib/projects';
 
 export function generateStaticParams() {
   return getSlugs().map((slug) => ({ slug }));
@@ -17,6 +17,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const p = getProject(slug);
   if (!p) notFound();
+  const { prev, next } = getAdjacent(slug);
 
   return (
     <main className="article">
@@ -44,6 +45,23 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <article className="prose">
         <MDXRemote source={p.body} />
       </article>
+
+      <nav className="pager">
+        {prev ? (
+          <a href={`/projects/${prev.slug}`}>
+            <span>Previous</span>
+            <strong>{prev.title}</strong>
+          </a>
+        ) : (
+          <span />
+        )}
+        {next && (
+          <a className="next" href={`/projects/${next.slug}`}>
+            <span>Next</span>
+            <strong>{next.title}</strong>
+          </a>
+        )}
+      </nav>
     </main>
   );
 }
