@@ -7,9 +7,9 @@ demo: ""
 date: "2025-03"
 status: "Complete"
 featured: true
-order: 4
 cover: "/images/projects/antibiotic/class-distribution.png"
-coverAlt: "Drug class distribution showing beta-lactamase dominating the dataset"
+coverAlt: "Drug class distribution, with beta-lactamase dominating the dataset"
+order: 4
 ---
 
 ## The problem
@@ -44,7 +44,7 @@ That reframes what a "good" model is. The 15-point macro-F1 gap between XGBoost 
 
 Treating a protein sequence as a document of overlapping 6-character substrings makes standard text-classification machinery apply directly. It also throws away long-range structure — a k-mer representation has no idea two motifs 300 residues apart are related.
 
-[**Your reasoning here.** Was this compute-driven, a scoping decision, or did you test alternatives? "6 was the largest k that stayed tractable at 169K features" is a perfectly good answer if that's what happened.]
+k=6 is the conventional choice in protein k-mer work and I took it as a default rather than deriving it. I never swept k, so I don't actually know whether 5 or 7 would have performed better — which is a cheap experiment I should have run.
 
 ### Conservative augmentation instead of SMOTE
 
@@ -58,10 +58,16 @@ Carbapenem recall went from 0.17 to 1.00. Perfect recall on the rarest and most 
 
 **The specific concern is fold contamination.** If augmentation happened before the cross-validation split, then mutated copies of a sequence can land in the training fold while the original sits in the test fold. At a 5% mutation rate those are near-identical, so the model is effectively being tested on data it trained on — and minority classes, which received the most augmentation, are exactly where that inflation would concentrate.
 
-[**Verify which order your pipeline used, and state it plainly here.** If augmentation ran inside each fold on training data only, say so — it's a methodological detail most people get wrong and demonstrating you got it right is a real credential. If it ran before the split, say that too, note the results are likely optimistic, and describe the corrected setup. An ML interviewer will ask this question. Answering it before they do is far stronger than being caught by it.]
+**Augmentation ran before the split.** Synthetic variants were generated from the full filtered dataset, concatenated with the originals, and only then divided into train and test. So a sequence and its three mutated copies were shuffled across both sides — and at a 5% substitution rate restricted to same-chemistry residues, those copies are nearly identical in k-mer space. The model was partly evaluated on data it had trained on, and because only classes under 200 examples were augmented, the inflation lands precisely on the minority classes this project is about.
+
+The reported minority-class recall should therefore be read as an upper bound, not a measurement.
 
 With a class of that size, a single test-fold example flipping also moves recall by a large fraction, so the confidence interval around 1.00 is wide regardless.
 
 ## What I'd do differently
 
-[**Two or three beyond the above.** Candidates: a protein language model embedding (ESM-2) as a feature baseline against k-mers; whether the keyword-based mapping from ARO terms to 11 categories introduced label noise, since that step is rule-based and unvalidated; reporting per-class confidence intervals rather than point estimates given how small the minority classes are.]
+**Restructure the pipeline so nothing leaks.** Split first, then fit the vectorizer and generate augmented examples inside the training fold only, and hold out a separate validation split for early stopping — right now the test set selects the stopping iteration.
+
+**Validate the label mapping.** The 11 resistance categories come from keyword-matching ARO ontology terms. That step is rule-based and I never checked it against ground truth, so an unknown fraction of my labels may be wrong, which would cap achievable accuracy regardless of the model.
+
+**Try a protein language model.** ESM-2 embeddings as a baseline against k-mers would answer whether sequence structure carries signal a bag-of-k-mers discards. That's the obvious next experiment and I haven't run it.

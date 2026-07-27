@@ -9,7 +9,7 @@ status: "Active"
 featured: true
 order: 1
 cover: "/images/projects/jobscout/jobscout-architecture.svg"
-coverAlt: ""
+coverAlt: "Four-agent pipeline with a needs-review branch"
 ---
 
 ## The problem
@@ -18,7 +18,7 @@ Tailoring a resume to a specific posting works. It's also the most tedious part 
 
 I wanted to know whether the whole loop could be automated without producing the generic LLM output a recruiter spots in three seconds — and without the pipeline collapsing the moment an external API had a bad day.
 
-> **TODO — screenshot.** A terminal recording of a full run, or a before/after of one resume against one posting. Highest-value visual on the page; put it directly here.
+{/* TODO: terminal recording of a full run, or a before/after of one bullet against one posting. Highest-value visual on this page. Replace this comment with: ![alt](/images/projects/jobscout/tailoring-diff.png) */}
 
 ## How it works
 
@@ -33,7 +33,7 @@ Four agents on Google's Agent Development Kit, coordinated by a stateful orchest
 
 The orchestrator holds run state across all four, which is what makes caching and cross-stage deduplication possible rather than each agent caching in isolation.
 
-![Four agents coordinated by a stateful orchestrator, with output splitting between tailored resumes and a needs-review queue](/images/projects/jobscout/jobscout-architecture.svg)
+![Four agents coordinated by a stateful orchestrator, with generation output splitting between tailored resumes and a needs-review queue](/images/projects/jobscout/jobscout-architecture.svg)
 
 ## Decisions worth explaining
 
@@ -53,7 +53,7 @@ The **embedding cache** is keyed on a hash of the resume file. My resume barely 
 
 The **job cache** deduplicates postings by URL across runs, with a max-age so a listing that's been sitting in the cache for long enough gets treated as new again. Postings recur constantly across sources and across days; re-scraping and re-processing one I've already handled is the same waste at larger scale.
 
-[**Add the benchmark numbers here** — and commit the script. Right now `/bench_*.py` is in `.gitignore` under one-off artifacts, so the speedup is a number nobody who clones the repo can reproduce or even see.]
+Together they turn a warm run into a fraction of a cold one. I have the timings from local benchmark runs, but the script is currently untracked — treat the speedup as unverified until it's committed alongside the code.
 
 ### Assuming the model produces invalid output
 
@@ -77,9 +77,11 @@ I want to be accurate about that rather than claim more credit than I'm owed. I 
 
 ## What I'd do differently
 
-[**Two or three, specific.** Candidates: whether four agents earn their coordination overhead versus a single staged prompt; that scoring is embedding cosine similarity plus profile rules with no learned weighting, so the thresholds are hand-tuned; and the real gap — there's no measure of whether a tailored resume actually outperforms an untailored one, which is the premise the whole project rests on.]
+**The profile doesn't generalize.** `yash_pathak.json` is hand-tuned — conditional triggers, importance tiers, exclude keywords. No real user is going to write `"include_if_jd_contains": ["reinforcement learning", "a* search", "mineflayer"]` for their own project. Most of it should be derived from the master resume: tech stack into triggers, resume order into default importance, header parsing into personal fields, leaving only genuinely personal input like location and visa status to a form.
 
-That last one is the honest gap. I can measure how fast the pipeline runs and whether output is well-formed. I have no way to measure whether the tailoring works.
+**The parser only speaks LaTeX.** Extraction depends on structural markers — `\emph{}` for tech stack, `\resumeProjectHeading{}` for project boundaries. PDF and DOCX flatten those into plain text, where the stack might follow a pipe, sit in parentheses, or not be delimited at all. Supporting them is an architectural decision, not a patch.
+
+**Nothing measures whether tailoring works.** I can measure how fast the pipeline runs and whether output is well-formed. I have no way to tell whether a tailored resume outperforms an untailored one — which is the premise the entire project rests on.
 
 ## What's next
 

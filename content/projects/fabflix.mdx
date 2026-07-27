@@ -21,7 +21,7 @@ A movie storefront is a deceptively good systems exercise. Reads vastly outnumbe
 
 The interesting constraint was that it had to survive things going wrong — a pod dying, a database node failing, traffic spiking — rather than merely work on a laptop. Most of the engineering is in that gap.
 
-This was a two-person project. [**One sentence naming your half.** From the commit history you owned the JWT and login path, the payment servlet split, and the Docker image restructuring for the multi-service deployment — worth saying plainly rather than leaving the reader to guess.]
+This was a two-person project. I owned the authentication path end to end — JWT issuance and `HttpOnly` cookie handling in `JwtUtil`, the login servlet, and the reCAPTCHA integration — along with splitting payment out into its own servlet and restructuring the Docker images for the multi-service deployment.
 
 ## Architecture
 
@@ -45,9 +45,9 @@ Autocomplete runs a cascade rather than a single matching strategy:
 2. **`LIKE` substring match** — catches partial tokens FULLTEXT misses
 3. **Levenshtein edit distance** via UCI's Flamingo UDF — catches actual typos
 
-![Autocomplete dropdown returning matches mid-keystroke](/images/projects/fabflix/search_page_fabflix.png)
-
 with edit-distance thresholds scaling from 1 to 4 characters based on query length.
+
+![Autocomplete dropdown returning matches mid-keystroke](/images/projects/fabflix/search_page_fabflix.png)
 
 The cascade exists because these three have inverted cost and recall profiles. FULLTEXT is cheap and precise but brittle against typos. Edit distance is tolerant but expensive, and running it on every keystroke isn't viable. Ordering them cheapest-first means the expensive stage only runs for the queries the cheap stages couldn't answer.
 
@@ -57,7 +57,7 @@ The adaptive threshold matters more than it looks. A fixed edit distance of 3 is
 
 Load testing ran under both high-traffic and induced-outage scenarios, with fault tolerance coming from Nginx balancing across replicas, JDBC failover through the primary/replica pool, and session preservation via cookie affinity.
 
-[**This is where the page needs your specific memory.** What actually broke the first time you ran the outage scenario? Did failover work immediately or did connections hang? Did sticky sessions survive a pod restart? One concrete "I expected X and got Y" is worth more than the paragraph above it — readers discount claims of resilience and believe stories about it failing.]
+Fault tolerance came from three mechanisms that had to work together: Nginx balancing across pod replicas, JDBC failover through the primary/replica pool, and session affinity preserved by ingress-managed cookies. The last is the fragile link — the other two are configuration, but session survival depends on the cookie routing a user back to a pod that still holds their cart.
 
 ## Security
 
@@ -73,4 +73,6 @@ Worth being honest in the same breath: the signing secret and the reCAPTCHA keys
 
 **Externalize session state.** Sticky sessions are a scaling ceiling; Redis-backed sessions remove the affinity requirement entirely.
 
-[**One or two more, specific.** Candidates: whether three stacked MySQL strategies should have been a single Elasticsearch index; whether `maxTotal="100"` was measured or inherited from a default; whether replication lag ever surfaced a visible inconsistency and how you'd detect it if it did.]
+**Measure the connection pool.** `maxTotal="100"` was a number I chose, not a number I measured. I have no evidence it's right, and no instrumentation that would have told me whether connection wait time was ever the real bottleneck.
+
+**Reconsider the search cascade.** Three stacked MySQL strategies solve a problem a single Elasticsearch index solves natively, with better ranking and without a C UDF in the deployment path. The cascade was the right call inside the assignment's constraints and the wrong one outside them.

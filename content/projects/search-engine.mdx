@@ -61,5 +61,3 @@ Deduplication happens during the crawl rather than after: URLs are normalized by
 **No ranking evaluation.** The project measures latency and never measures relevance. There's no answer to whether result #1 is better than result #4 — precision@k against a small hand-labeled query set would have been cheap and would have made every ranking decision testable instead of assumed.
 
 **Content-level deduplication.** URL normalization catches the anchor case but not templated pages that differ by a nav element. SimHash or shingling over document text is the standard fix.
-
-> **TODO — visual.** Skip the Flask UI; it's unstyled and undersells this. Two better options: a pipeline diagram (crawl → normalize → tokenize → buffer → flush/merge → TSV + offset map → seek → rank), or an annotated excerpt of a TSV line beside its offset-map entry with an arrow showing the seek. The second one shows the actual mechanism in about six lines.
