@@ -40,9 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           {children}
           <footer className="foot">
-            <a href="mailto:you@example.com">you@example.com</a>
+            <a href="mailto:yashpathak1446@gmail.com">Email</a>
             <a href="https://github.com/YashPathak1446">GitHub</a>
-            <a href="https://linkedin.com/in/">LinkedIn</a>
+            <a href="https://www.linkedin.com/in/yash-pathak-6074a1210/">LinkedIn</a>
           </footer>
         </div>
       </body>
