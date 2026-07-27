@@ -34,7 +34,7 @@
     "org": "Outlier AI",
     "location": "Remote — contract",
     "start": "2024-06",
-    "end": "",
+    "end": "2025-06",
     "summary": "RLHF evaluation: reviewing model-generated Python across algorithmic and software-engineering tasks, writing critiques that identify logic errors and edge-case failures, and ranking candidate responses into preference data.",
     "highlight": "",
     "stack": []
@@ -44,7 +44,7 @@
     "org": "tutor.com",
     "location": "Remote",
     "start": "2023-07",
-    "end": "",
+    "end": "2025-06",
     "summary": "One-on-one Python and Java tutoring for 100+ students — debugging their code live, working through data structures, recursion, and complexity analysis.",
     "highlight": "",
     "stack": []

@@ -11,12 +11,13 @@ Grounded in what recruiters actually do: under 30 seconds on a first visit,
       worse than having no link at all.
 - [ ] **3. Repo + live demo links on the project cards.** Currently one click
       deep in the meta bar. Recruiters scan for them; they should be scannable.
-- [ ] **4. Live GitHub activity.** Recent commits or pinned repos pulled from
-      the public API so the site reflects last week, not last year.
-      *Open decision: build-time fetch (fast, refreshes on deploy) vs
-      client-side (always live, slower first paint).*
-- [ ] **5. SEO plumbing.** JSON-LD `Person` schema, `sitemap.ts`, `robots.ts`,
-      per-page OpenGraph images.
+- [x] **4. Live GitHub activity.** Five most recently pushed non-fork repos,
+      fetched at build time with hourly revalidation. Returns `[]` on failure
+      so the section degrades away rather than breaking the build.
+      *Follow-up: add `GITHUB_TOKEN` in Vercel to lift the 60/hr per-IP limit.*
+- [x] **5. SEO plumbing.** JSON-LD `Person` schema, `sitemap.ts`, `robots.ts`,
+      shared constants in `src/lib/site.ts`.
+      *Still open: per-project OpenGraph images.*
 
 ## Non-functional
 
@@ -35,6 +36,9 @@ Grounded in what recruiters actually do: under 30 seconds on a first visit,
       (the `{/* TODO */}` in `jobscout.mdx`)
 - [ ] Commit the JobScout benchmark script so the cache speedup is verifiable
 - [ ] Rewrite hero and About copy in my own voice
+- [ ] Add descriptions to GitHub repos — `portfolio`,
+      `antibiotic-resistance-prediction`, `Web-Application`, `Spotify-Browser`
+      have none, so they render bare in the activity feed
 
 ## Deliberately parked
 

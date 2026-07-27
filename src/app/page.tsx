@@ -2,6 +2,7 @@ import { getAllProjects, formatYear } from '@/lib/projects';
 import { getExperience, formatSpan } from '@/lib/experience';
 import EmbeddingField from '@/components/EmbeddingField';
 import Contact from '@/components/Contact';
+import GitHubActivity from '@/components/GitHubActivity';
 
 export default function Home() {
   const projects = getAllProjects();
@@ -130,6 +131,8 @@ export default function Home() {
           ))}
         </ul>
       </section>
+
+      <GitHubActivity />
 
       <section id="about" className="about">
         <h2>About</h2>
