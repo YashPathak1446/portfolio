@@ -686,3 +686,98 @@ a { color: inherit; }
   .masthead { gap: 0.75rem; }
   .masthead nav { gap: 0.9rem 1rem; }
 }
+
+html { overflow-x: clip; }
+
+.band {
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  background: var(--panel);
+  border-block: 1px solid var(--rule);
+  margin-block: clamp(3rem, 7vw, 5rem);
+}
+
+.band .section-rule { border-top: 0; padding-top: 0; margin-top: 0; }
+
+.work-grid {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.card {
+  display: block;
+  text-decoration: none;
+  height: 100%;
+}
+
+.card-media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+
+.card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(0.78);
+  transform: scale(1.001);
+  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.3, 1), filter 300ms ease;
+}
+
+.card:hover .card-media img,
+.card:focus-visible .card-media img {
+  transform: scale(1.045);
+  filter: saturate(1);
+}
+
+.card:hover .card-media { border-color: var(--signal); }
+
+.card-body { padding: 1.1rem 0 0; }
+
+.card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.card-key { color: var(--signal); }
+.card-year { color: var(--muted); }
+
+.card h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.4rem, 2.4vw, 1.75rem);
+  letter-spacing: -0.025em;
+  margin: 0.5rem 0 0;
+  line-height: 1.1;
+}
+
+.card:hover h3 { color: var(--signal); }
+
+.card p {
+  margin: 0.55rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.card .stack { margin-top: 0.85rem; }
+
+.section-rule span { font-size: 0.75rem; letter-spacing: 0.18em; }
+
+@media (max-width: 52rem) {
+  .work-grid { grid-template-columns: minmax(0, 1fr); }
+}

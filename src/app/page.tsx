@@ -29,31 +29,27 @@ export default function Home() {
         <div className="section-rule">
           <span>Selected work</span>
         </div>
-        <ul className="index">
+        <ul className="work-grid">
           {featured.map((p) => (
             <li className="reveal" key={p.slug}>
-              <a className="entry" href={`/projects/${p.slug}`}>
-                <div className="entry-grid">
-                  <div>
-                    <span className="entry-head">
-                      <span className="entry-key">{p.slug}</span>
-                      <span className="entry-title">{p.title}</span>
-                      <span className="leader" aria-hidden="true" />
-                      <span className="entry-year">{formatYear(p.date)}</span>
-                      <span className="seek" aria-hidden="true">→</span>
-                    </span>
-                    <p className="entry-line">{p.tagline}</p>
-                    <ul className="stack">
-                      {p.stack.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
+              <a className="card" href={`/projects/${p.slug}`}>
+                {p.cover && (
+                  <div className="card-media">
+                    <img src={p.cover} alt={p.coverAlt ?? ''} loading="lazy" />
                   </div>
-                  {p.cover && (
-                    <div className="thumb">
-                      <img src={p.cover} alt="" loading="lazy" />
-                    </div>
-                  )}
+                )}
+                <div className="card-body">
+                  <span className="card-meta">
+                    <span className="card-key">{p.slug}</span>
+                    <span className="card-year">{formatYear(p.date)}</span>
+                  </span>
+                  <h3>{p.title}</h3>
+                  <p>{p.tagline}</p>
+                  <ul className="stack">
+                    {p.stack.slice(0, 5).map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
                 </div>
               </a>
             </li>
@@ -84,7 +80,7 @@ export default function Home() {
         )}
       </section>
 
-      <section id="experience">
+      <section id="experience" className="band">
         <div className="section-rule" style={{ marginTop: '3.5rem' }}>
           <span>Experience</span>
         </div>
