@@ -7,10 +7,11 @@ Grounded in what recruiters actually do: under 30 seconds on a first visit,
 
 - [x] **1. Contact section with a real CTA.** Prominent, above the footer, with
       copy-to-clipboard email. The site's whole job is to get a reply.
-- [ ] **2. `public/resume.pdf`.** The nav links to it and it currently 404s —
-      worse than having no link at all.
-- [ ] **3. Repo + live demo links on the project cards.** Currently one click
-      deep in the meta bar. Recruiters scan for them; they should be scannable.
+- [x] **2. Résumé section.** `public/resume.pdf` in place, with a rendered
+      first-page preview, download and open-in-browser actions, and a nav link.
+- [x] **3. Repo + demo links on the project cards.** Stretched-link pattern so
+      the card stays clickable. `demoLabel` frontmatter names each demo type
+      accurately (Fabflix is a "Walkthrough", not a live app).
 - [x] **4. Live GitHub activity.** Five most recently pushed non-fork repos,
       fetched at build time with hourly revalidation. Returns `[]` on failure
       so the section degrades away rather than breaking the build.
@@ -36,6 +37,8 @@ Grounded in what recruiters actually do: under 30 seconds on a first visit,
       (the `{/* TODO */}` in `jobscout.mdx`)
 - [ ] Commit the JobScout benchmark script so the cache speedup is verifiable
 - [ ] Rewrite hero and About copy in my own voice
+- [ ] Regenerate `public/images/resume-preview.jpg` whenever resume.pdf changes:
+      `pdftoppm -png -r 150 -f 1 -l 1 public/resume.pdf /tmp/rp`
 - [ ] Add descriptions to GitHub repos — `portfolio`,
       `antibiotic-resistance-prediction`, `Web-Application`, `Spotify-Browser`
       have none, so they render bare in the activity feed

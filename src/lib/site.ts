@@ -1,4 +1,4 @@
-export const SITE_URL = 'https://portfolio-sigma-nine-qz39oyo8ii.vercel.app';
+export const SITE_URL = 'https://portfolio-yashpathak1446.vercel.app';
 export const SITE_NAME = 'Yash Pathak';
 export const SITE_DESCRIPTION =
   'Software engineer working on AI infrastructure: retrieval pipelines, agent orchestration, and the cloud plumbing underneath both.';

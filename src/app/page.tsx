@@ -2,6 +2,7 @@ import { getAllProjects, formatYear } from '@/lib/projects';
 import { getExperience, formatSpan } from '@/lib/experience';
 import EmbeddingField from '@/components/EmbeddingField';
 import Contact from '@/components/Contact';
+import Resume from '@/components/Resume';
 import GitHubActivity from '@/components/GitHubActivity';
 
 export default function Home() {
@@ -153,6 +154,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <Resume />
 
       <Contact />
     </main>

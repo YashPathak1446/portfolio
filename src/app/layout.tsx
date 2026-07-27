@@ -1,26 +1,24 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import ThemeToggle from '@/components/ThemeToggle';
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, GITHUB_URL, LINKEDIN_URL, EMAIL } from '@/lib/site';
 
-const SITE = 'https://portfolio-sigma-nine-qz39oyo8ii.vercel.app'; // TODO: your domain
-const DESCRIPTION =
-  'Software engineer working on AI infrastructure: retrieval pipelines, agent orchestration, and the cloud plumbing underneath both.';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Yash Pathak — software engineer',
     template: '%s',
   },
-  description: DESCRIPTION,
+  description: SITE_DESCRIPTION,
   openGraph: {
     title: 'Yash Pathak — software engineer',
-    description: DESCRIPTION,
-    url: SITE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
     siteName: 'Yash Pathak',
     type: 'website',
   },
-  twitter: { card: 'summary_large_image', title: 'Yash Pathak', description: DESCRIPTION },
+  twitter: { card: 'summary_large_image', title: 'Yash Pathak', description: SITE_DESCRIPTION },
   icons: { icon: '/favicon.svg' },
 };
 
@@ -36,6 +34,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Person',
+              name: SITE_NAME,
+              url: SITE_URL,
+              email: `mailto:${EMAIL}`,
+              jobTitle: 'Software Engineer',
+              description: SITE_DESCRIPTION,
+              alumniOf: {
+                '@type': 'CollegeOrUniversity',
+                name: 'University of California, Irvine',
+              },
+              knowsAbout: [
+                'AI infrastructure',
+                'Retrieval-augmented generation',
+                'Distributed systems',
+                'Cloud infrastructure',
+                'Machine learning',
+              ],
+              sameAs: [GITHUB_URL, LINKEDIN_URL],
+            }),
+          }}
+        />
         <div className="shell">
           <header className="masthead">
             <a href="/" className="wordmark">Yash Pathak</a>
@@ -43,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/#work">Work</a>
               <a href="/#experience">Experience</a>
               <a href="/#about">About</a>
+              <a href="/#resume">Résumé</a>
               <a href="/#contact">Contact</a>
               <a href="https://github.com/YashPathak1446">GitHub</a>
               <ThemeToggle />
