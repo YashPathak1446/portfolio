@@ -11,6 +11,7 @@ export type Project = {
   stack: string[];
   repo?: string;
   demo?: string;
+  demoLabel?: string;
   date: string;
   status?: string;
   team?: string;
@@ -37,6 +38,7 @@ export function getProject(slug: string): Project | null {
     stack: data.stack ?? [],
     repo: data.repo || undefined,
     demo: data.demo || undefined,
+    demoLabel: data.demoLabel || 'Demo',
     date: data.date ?? '',
     status: data.status,
     team: data.team,

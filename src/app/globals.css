@@ -911,3 +911,48 @@ html { overflow-x: clip; }
   .contact-actions { flex-direction: column; align-items: stretch; }
   .btn { width: 100%; }
 }
+
+/* stretched-link pattern: whole card is clickable, but nested links still work */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-link { text-decoration: none; color: inherit; }
+
+.card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  z-index: 0;
+}
+
+.card:hover .card-link { color: var(--signal); }
+
+.card-body { display: flex; flex-direction: column; flex: 1; }
+
+.card-links {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 1.25rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.card-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 44px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.card-links a:hover { color: var(--signal); }
+
+.card .stack { margin-bottom: 0.25rem; }

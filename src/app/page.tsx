@@ -13,7 +13,7 @@ export default function Home() {
     <main>
       <section className="hero">
         <div className="hero-text">
-        <p className="eyebrow">Irvine, CA</p>
+        <p className="eyebrow">Bay Area, CA</p>
         <h1>I build the plumbing underneath AI systems.</h1>
         <p>
           Retrieval pipelines, agent orchestration, and the cloud infrastructure
@@ -36,27 +36,43 @@ export default function Home() {
         </div>
         <ul className="work-grid">
           {featured.map((p) => (
-            <li className="reveal" key={p.slug}>
-              <a className="card" href={`/projects/${p.slug}`}>
-                {p.cover && (
-                  <div className="card-media">
-                    <img src={p.cover} alt={p.coverAlt ?? ''} loading="lazy" />
+            <li className="card reveal" key={p.slug}>
+              {p.cover && (
+                <div className="card-media">
+                  <img src={p.cover} alt={p.coverAlt ?? ''} loading="lazy" />
+                </div>
+              )}
+              <div className="card-body">
+                <span className="card-meta">
+                  <span className="card-key">{p.slug}</span>
+                  <span className="card-year">{formatYear(p.date)}</span>
+                </span>
+                <h3>
+                  <a className="card-link" href={`/projects/${p.slug}`}>
+                    {p.title}
+                  </a>
+                </h3>
+                <p>{p.tagline}</p>
+                <ul className="stack">
+                  {p.stack.slice(0, 5).map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+                {(p.repo || p.demo) && (
+                  <div className="card-links">
+                    {p.repo && (
+                      <a href={p.repo} target="_blank" rel="noreferrer">
+                        Source <span aria-hidden="true">↗</span>
+                      </a>
+                    )}
+                    {p.demo && (
+                      <a href={p.demo} target="_blank" rel="noreferrer">
+                        {p.demoLabel} <span aria-hidden="true">↗</span>
+                      </a>
+                    )}
                   </div>
                 )}
-                <div className="card-body">
-                  <span className="card-meta">
-                    <span className="card-key">{p.slug}</span>
-                    <span className="card-year">{formatYear(p.date)}</span>
-                  </span>
-                  <h3>{p.title}</h3>
-                  <p>{p.tagline}</p>
-                  <ul className="stack">
-                    {p.stack.slice(0, 5).map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              </a>
+              </div>
             </li>
           ))}
         </ul>
