@@ -1,6 +1,7 @@
 import { getAllProjects, formatYear } from '@/lib/projects';
 import { getExperience, formatSpan } from '@/lib/experience';
 import EmbeddingField from '@/components/EmbeddingField';
+import Contact from '@/components/Contact';
 
 export default function Home() {
   const projects = getAllProjects();
@@ -12,7 +13,7 @@ export default function Home() {
     <main>
       <section className="hero">
         <div className="hero-text">
-        <p className="eyebrow">Bay Area, CA</p>
+        <p className="eyebrow">Irvine, CA</p>
         <h1>I build the plumbing underneath AI systems.</h1>
         <p>
           Retrieval pipelines, agent orchestration, and the cloud infrastructure
@@ -133,6 +134,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <Contact />
     </main>
   );
 }

@@ -43,16 +43,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/#work">Work</a>
               <a href="/#experience">Experience</a>
               <a href="/#about">About</a>
-              <a href="/resume.pdf">Résumé</a>
+              <a href="/#contact">Contact</a>
               <a href="https://github.com/YashPathak1446">GitHub</a>
               <ThemeToggle />
             </nav>
           </header>
           {children}
           <footer className="foot">
-            <a href="mailto:yashpathak1446@gmail.com">Email</a>
-            <a href="https://github.com/YashPathak1446">GitHub</a>
-            <a href="https://www.linkedin.com/in/yash-pathak-6074a1210/">LinkedIn</a>
+            <span>© {new Date().getFullYear()} Yash Pathak</span>
+            <a href="/#contact">Get in touch</a>
           </footer>
         </div>
       </body>
