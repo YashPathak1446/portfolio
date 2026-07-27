@@ -8,7 +8,7 @@ date: "2026-01"
 status: "Active"
 featured: true
 order: 1
-cover: ""
+cover: "/images/projects/jobscout/jobscout-architecture.svg"
 coverAlt: ""
 ---
 
@@ -33,7 +33,7 @@ Four agents on Google's Agent Development Kit, coordinated by a stateful orchest
 
 The orchestrator holds run state across all four, which is what makes caching and cross-stage deduplication possible rather than each agent caching in isolation.
 
-> **TODO — architecture diagram.** Four agents plus the orchestrator, with the two caches hanging off the side.
+![Four agents coordinated by a stateful orchestrator, with output splitting between tailored resumes and a needs-review queue](/images/projects/jobscout/jobscout-architecture.svg)
 
 ## Decisions worth explaining
 

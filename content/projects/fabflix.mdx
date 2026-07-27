@@ -45,6 +45,8 @@ Autocomplete runs a cascade rather than a single matching strategy:
 2. **`LIKE` substring match** — catches partial tokens FULLTEXT misses
 3. **Levenshtein edit distance** via UCI's Flamingo UDF — catches actual typos
 
+![Autocomplete dropdown returning matches mid-keystroke](/images/projects/fabflix/search_page_fabflix.png)
+
 with edit-distance thresholds scaling from 1 to 4 characters based on query length.
 
 The cascade exists because these three have inverted cost and recall profiles. FULLTEXT is cheap and precise but brittle against typos. Edit distance is tolerant but expensive, and running it on every keystroke isn't viable. Ordering them cheapest-first means the expensive stage only runs for the queries the cheap stages couldn't answer.

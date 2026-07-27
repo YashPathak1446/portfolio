@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
-const SITE = 'https://yashpathak.dev'; // TODO: your domain
+const SITE = 'https://vercel.com/yashpathak1446/portfolio'; // TODO: your domain
 const DESCRIPTION =
   'Software engineer working on AI infrastructure: retrieval pipelines, agent orchestration, and the cloud plumbing underneath both.';
 

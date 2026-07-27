@@ -8,11 +8,9 @@ date: "2025-03"
 status: "Complete"
 featured: true
 order: 4
-cover: ""
-coverAlt: ""
+cover: "/images/projects/antibiotic/class-distribution.png"
+coverAlt: "Drug class distribution showing beta-lactamase dominating the dataset"
 ---
-
-> **TODO — check the repo URL.** It points at `YashPathak302`, but everything else on this site is `YashPathak1446`. If that's a teammate's account, fork it to your own or the link will read as someone else's work.
 
 ## The problem
 
@@ -24,7 +22,7 @@ So the naive success metric is actively misleading. A model that ignores the inp
 
 **Result:** XGBoost at 94.2% accuracy (±0.2%) under stratified 5-fold cross-validation — but the number that matters is a macro-F1 of 0.71 against Random Forest's 0.56, driven by recall on the minority classes: carbapenem 0.17 → 1.00, aminoglycoside 0.42 → 0.89.
 
-> **TODO — confusion matrix, or per-class recall as a bar chart with Random Forest and XGBoost side by side.** The minority-class recall jump is the whole argument; show it rather than describing it.
+![XGBoost confusion matrix across 11 resistance classes](/images/projects/antibiotic/xgb-confusion-matrix.png)
 
 ## How it works
 
