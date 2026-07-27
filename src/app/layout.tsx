@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const SITE = 'https://portfolio-sigma-nine-qz39oyo8ii.vercel.app'; // TODO: your domain
 const DESCRIPTION =
@@ -25,7 +26,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}",
+          }}
+        />
+      </head>
       <body>
         <div className="shell">
           <header className="masthead">
@@ -36,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/#about">About</a>
               <a href="/resume.pdf">Résumé</a>
               <a href="https://github.com/YashPathak1446">GitHub</a>
+              <ThemeToggle />
             </nav>
           </header>
           {children}

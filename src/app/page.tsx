@@ -10,12 +10,19 @@ export default function Home() {
   return (
     <main>
       <section className="hero">
-        <p className="eyebrow">Bay Area, CA</p>
+        <p className="eyebrow">Irvine, CA</p>
         <h1>I build the plumbing underneath AI systems.</h1>
         <p>
           Retrieval pipelines, agent orchestration, and the cloud infrastructure
           that keeps both of them running when something upstream fails.
         </p>
+
+        <dl className="record">
+          <div><dt>focus</dt><dd>AI infrastructure, backend systems</dd></div>
+          <div><dt>recently</dt><dd>AWS + Terraform at Sorenson, RAG over 36M articles at 101gen</dd></div>
+          <div><dt>education</dt><dd>B.S. Computer Science, UC Irvine</dd></div>
+          <div><dt>status</dt><dd className="open">open to new grad and entry-level roles</dd></div>
+        </dl>
       </section>
 
       <section id="work">
@@ -110,7 +117,7 @@ export default function Home() {
       <section id="about" className="about">
         <h2>About</h2>
         <div className="bio">
-          <img className="portrait" src="images/yash_pathak.jpeg" alt="Yash Pathak" />
+          <img className="portrait" src="/images/yash_pathak.jpeg" alt="Yash Pathak" />
           <div>
           <p>
             I graduated from UC Irvine with a B.S. in Computer Science and spent the

@@ -1,6 +1,19 @@
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { getProject, getSlugs, formatYear, getAdjacent } from '@/lib/projects';
+import { getHeadings, slugify } from '@/lib/toc';
+
+function textOf(node: React.ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (node && typeof node === 'object' && 'props' in (node as any))
+    return textOf((node as any).props?.children);
+  return '';
+}
+
+const mdxComponents = {
+  h2: (props: any) => <h2 id={slugify(textOf(props.children))} {...props} />,
+};
 
 export function generateStaticParams() {
   return getSlugs().map((slug) => ({ slug }));
@@ -18,6 +31,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const p = getProject(slug);
   if (!p) notFound();
   const { prev, next } = getAdjacent(slug);
+  const headings = getHeadings(p.body);
 
   return (
     <main className="article">
@@ -42,9 +56,23 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </figure>
       )}
 
-      <article className="prose">
-        <MDXRemote source={p.body} />
-      </article>
+      <div className="reading">
+        {headings.length > 2 && (
+          <aside className="toc" aria-label="On this page">
+            <p className="toc-label">On this page</p>
+            <ol>
+              {headings.map((h) => (
+                <li key={h.id}>
+                  <a href={`#${h.id}`}>{h.text}</a>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        )}
+        <article className="prose">
+          <MDXRemote source={p.body} components={mdxComponents} />
+        </article>
+      </div>
 
       <nav className="pager">
         {prev ? (
